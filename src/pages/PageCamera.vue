@@ -6,6 +6,7 @@
         ref="video"
         class="full-width"
         autoplay
+        playsinline
       />
       <canvas
         v-show="imageCaptured"
@@ -68,6 +69,7 @@
         <q-btn
           @click="addPost()"
           :disable="!post.caption || !post.photo"
+          class="q-mb-lg"
           color="primary"
           label="Post Image"
           rounded
