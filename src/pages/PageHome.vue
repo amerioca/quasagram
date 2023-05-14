@@ -1,6 +1,54 @@
 <template>
   <q-page class="constrain q-pa-md">
+    <transition
+      appear
+      enter-active-class="animated fadeIn"
+      leave-active-class="animated fadeOut"
+    >
+      <div
+        v-if="showNotificationsBanner && pushNotificationsSupported"
+        class="banner-container bg-primary"
+      >
+        <div class="constrain">
+          <q-banner
+            class="bg-grey-3 q-mb-md"
+          >
+            <template v-slot:avatar>
+              <q-icon name="eva-bell-outline" color="primary" />
+            </template>
 
+            Would you like to enable notifications?
+
+            <template v-slot:action>
+              <q-btn
+                @click="enableNotifications"
+                label="Yes"
+                color="primary"
+                class="q-px-sm"
+                dense
+                flat
+              />
+              <q-btn
+                @click="showNotificationsBanner = false"
+                label="Later"
+                color="primary"
+                class="q-px-sm"
+                dense
+                flat
+              />
+              <q-btn
+                @click="neverShowNotificationsBanner"
+                label="Never"
+                color="primary"
+                class="q-px-sm"
+                dense
+                flat
+              />
+            </template>
+          </q-banner>
+        </div>
+      </div>
+    </transition>
     <div class="row q-col-gutter-lg">
       <div class="col-12 col-sm-8">
         <template v-if="!loadingPosts && posts.length">
@@ -101,18 +149,24 @@
 <script>
 import { date } from 'quasar'
 import { openDB } from 'idb'
+let qs = require('qs')
 
 export default {
   name: 'PageHome',
   data() {
     return {
       posts: [],
-      loadingPosts: false
+      loadingPosts: false,
+      showNotificationsBanner: false
     }
   },
   computed: {
     serviceWorkerSupported() {
       if ('serviceWorker' in navigator) return true
+      return false
+    },
+    pushNotificationsSupported() {
+      if ('PushManager' in window) return true
       return false
     }
   },
@@ -172,6 +226,112 @@ export default {
           }
         });
       }
+    },
+    initNotificationsBanner() {
+      let neverShowNotificationsBanner = this.$q.localStorage.getItem('neverShowNotificationsBanner')
+
+      if (!neverShowNotificationsBanner) {
+        this.showNotificationsBanner = true   
+      }
+    },
+    enableNotifications() {
+      if (this.pushNotificationsSupported) {
+        Notification.requestPermission(result => {
+          console.log('result: ', result)
+          this.neverShowNotificationsBanner()
+          if (result == 'granted') {
+            // this.displayGrantedNotification()
+            this.checkForExistingPushSubscription()
+          }
+        })
+      }
+    },
+    checkForExistingPushSubscription() {
+      if (this.serviceWorkerSupported && this.pushNotificationsSupported) {
+        let reg
+        navigator.serviceWorker.ready.then(swreg => {
+          reg = swreg
+          return swreg.pushManager.getSubscription()
+        }).then(sub => {
+          if (!sub) {
+            this.createPushSubscription(reg)
+          }
+        })
+      }
+    },
+    createPushSubscription(reg) {
+      let vapidPublicKey = '[YOUR PUBLIC KEY HERE]'
+      let vapidPublicKeyConverted = this.urlBase64ToUint8Array(vapidPublicKey)
+      reg.pushManager.subscribe({
+        applicationServerKey: vapidPublicKeyConverted,
+        userVisibleOnly: true
+      }).then(newSub => {
+        let newSubData = newSub.toJSON(),
+            newSubDataQS = qs.stringify(newSubData)
+        return this.$axios.post(`${ process.env.API }/createSubscription?${ newSubDataQS }`)
+      }).then(response => {
+        this.displayGrantedNotification()
+      }).catch(err => {
+        console.log('err: ', err)
+      })
+    },
+    displayGrantedNotification() {
+      // new Notification("You're subscribed to notifications!", {
+      //   body: 'Thanks for subscribing!',
+      //   icon: 'icons/icon-128x128.png',
+      //   image: 'icons/icon-128x128.png',
+      //   badge: 'icons/icon-128x128.png',
+      //   dir: 'ltr',
+      //   lang: 'en-US',
+      //   vibrate: [100, 50, 200],
+      //   tag: 'confirm-notification',
+      //   renotify: true
+      // })
+      if (this.serviceWorkerSupported && this.pushNotificationsSupported) {
+        navigator.serviceWorker.ready.then(swreg => {
+          swreg.showNotification("You're subscribed to notifications!", {
+            body: 'Thanks for subscribing!',
+            icon: 'icons/icon-128x128.png',
+            image: 'icons/icon-128x128.png',
+            badge: 'icons/icon-128x128.png',
+            dir: 'ltr',
+            lang: 'en-US',
+            vibrate: [100, 50, 200],
+            tag: 'confirm-notification',
+            renotify: true,
+            actions: [
+              {
+                action: 'hello',
+                title: 'Hello',
+                icon: 'icons/icon-128x128.png'
+              },
+              {
+                action: 'goodbye',
+                title: 'Goodbye',
+                icon: 'icons/icon-128x128.png'
+              }
+            ]
+          })
+        })
+      }
+    },
+    neverShowNotificationsBanner() {
+      this.showNotificationsBanner = false
+      this.$q.localStorage.set('neverShowNotificationsBanner', true)
+    },
+    urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
     }
   },
   filters: {
@@ -185,6 +345,7 @@ export default {
   },
   created() {
     this.listenForOfflinePostUploaded()
+    this.initNotificationsBanner()
   }
 }
 </script>

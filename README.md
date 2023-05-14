@@ -46,6 +46,15 @@ admin.initializeApp({
 });
 ```
 
+## Add your Public & Private Vapid Keys
+- If you haven't already, generate some vapid keys and store these in a text file outside of your project:
+```
+cd backend
+npm run web-push generate-vapid-keys
+```
+- `/backend/index.js` - add your public & private keys to lines 41 & 42
+- `/src/pages/PageHome.vue` - add your public key to line 263
+
 ## Start the backend (from /backend folder)
 ```bash
 npm start

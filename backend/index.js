@@ -10,6 +10,7 @@
   let os = require('os')
   let fs = require('fs')
   let UUID = require('uuid-v4')
+  let webpush = require('web-push')
 
 /*
   config - express
@@ -30,6 +31,16 @@
 
   const db = admin.firestore();
   let bucket = admin.storage().bucket();
+
+/*
+  config - webpush
+*/
+
+  webpush.setVapidDetails(
+    'mailto:test@test.com',
+    '[YOUR PUBLIC KEY HERE]', // public key
+    '[YOUR PRIVATE KEY HERE]' // private key
+  );
 
 /*
   endpoint - posts
@@ -101,13 +112,55 @@
           date: parseInt(fields.date),
           imageUrl: `https://firebasestorage.googleapis.com/v0/b/${ bucket.name }/o/${ uploadedFile.name }?alt=media&token=${ uuid }`
         }).then(() => {
+          sendPushNotification()
           response.send('Post added: ' + fields.id)
+        })
+      }
+
+      function sendPushNotification() {
+        let subscriptions = []
+        db.collection('subscriptions').get().then(snapshot => {
+          snapshot.forEach((doc) => {
+            subscriptions.push(doc.data())
+          });
+          return subscriptions
+        }).then(subscriptions => {
+          subscriptions.forEach(subscription => {
+            const pushSubscription = {
+              endpoint: subscription.endpoint,
+              keys: {
+                auth: subscription.keys.auth,
+                p256dh: subscription.keys.p256dh
+              }
+            };
+            let pushContent = {
+              title: 'New Quasagram Post!',
+              body: 'New Post Added! Check it out!',
+              openUrl: '/#/'
+            }
+            let pushContentStringified = JSON.stringify(pushContent)
+            webpush.sendNotification(pushSubscription, pushContentStringified)
+          })
         })
       }
     });
 
     request.pipe(busboy)
   })
+
+/*
+  endpoint - createSubscription
+*/
+
+app.post('/createSubscription', (request, response) => {
+  response.set('Access-Control-Allow-Origin', '*')
+  db.collection('subscriptions').add(request.query).then(docRef => {
+    response.send({
+      message: 'Subscription added!',
+      postData: request.query
+    })
+  })
+})
 
 /*
   listen
