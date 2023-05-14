@@ -54,7 +54,7 @@ module.exports = function (/* ctx */) {
       // Add dependencies for transpiling with Babel (Array of regexes)
       // (from node_modules, which are by default not transpiled).
       // Does not applies to modern builds.
-      // transpileDependencies: [],
+      transpileDependencies: ['idb'],
 
       // rtl: false, // https://quasar.dev/options/rtl-support
       // showProgress: false,

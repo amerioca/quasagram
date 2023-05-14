@@ -173,7 +173,14 @@ export default {
   methods: {
     getPosts() {
       this.loadingPosts = true
-      this.$axios.get(`${ process.env.API }/posts`).then(response => {
+
+      // add a unique timestamp to the request URL for IE so that requests don't get cached
+      let timestamp = ''
+      if (this.$q.platform.is.ie) {
+        timestamp = '?timestamp=' + Date.now()
+      }
+
+      this.$axios.get(`${ process.env.API }/posts${ timestamp }`).then(response => {
         this.posts = response.data
         this.loadingPosts = false
         if (!navigator.onLine) {
@@ -260,7 +267,7 @@ export default {
       }
     },
     createPushSubscription(reg) {
-      let vapidPublicKey = '[YOUR PUBLIC KEY HERE]'
+      let vapidPublicKey = 'BK-jPi6_Rg4oPgfHlT8r1PwZSaFia_JnItMM-5p8Aixb1JwLeYv2jKi5GFUvXuOIgYa620gple3FEMew9smt0IU'
       let vapidPublicKeyConverted = this.urlBase64ToUint8Array(vapidPublicKey)
       reg.pushManager.subscribe({
         applicationServerKey: vapidPublicKeyConverted,
