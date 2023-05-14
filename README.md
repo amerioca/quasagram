@@ -31,6 +31,21 @@ npm install
 - Generate a new private key, store it in your `/backend` folder
 - Rename the private key to `serviceAccountKey.json`
 
+## Add your Production API URL
+- On line 10 of `/quasar.conf.js` add your own Production API URL (with no slash at the end) e.g. 'https://your-project-name.herokuapp.com'
+```
+API_PRODUCTION = '[YOUR LIVE BACKEND URL]'
+```
+
+## Add your Firebase Storage Bucket URL
+- On line 28 of `/backend/index.js` add your own Firebase Storage Bucket URL. You can get this from the Firebase Console e.g. "quasagram-1hg13.appspot.com"
+```
+admin.initializeApp({
+  ...
+  storageBucket: "[YOUR FIREBASE STORAGE BUCKET URL]"
+});
+```
+
 ## Start the backend (from /backend folder)
 ```bash
 npm start
