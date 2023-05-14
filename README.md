@@ -60,3 +60,13 @@ quasar dev -m pwa
 - Chrome Dev Tools
 - Application > Clear storage > Clear site data
 - Reload the app
+
+## To generate icons
+- Install Icon Genie CLI globally
+```
+npm install -g @quasar/icongenie
+```
+- Generate the icons
+```
+npm run icons
+```
