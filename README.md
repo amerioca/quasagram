@@ -51,7 +51,12 @@ admin.initializeApp({
 npm start
 ```
 
-## Start the app in development mode (from / folder)
+## Start the app in PWA development mode (from / folder)
 ```bash
-quasar dev
+quasar dev -m pwa
 ```
+
+**Note:** You may need to clear site data and reload:
+- Chrome Dev Tools
+- Application > Clear storage > Clear site data
+- Reload the app
