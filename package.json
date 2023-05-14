@@ -10,13 +10,13 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
-    "axios": "^0.18.1",
+    "axios": "^1.4.0",
     "core-js": "^3.6.5",
     "md-gum-polyfill": "^1.0.0",
     "quasar": "^1.0.0"
   },
   "devDependencies": {
-    "@quasar/app": "^2.0.1"
+    "@quasar/app": "^3.3.3"
   },
   "engines": {
     "node": ">= 10.18.1",
