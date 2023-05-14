@@ -38,6 +38,7 @@
 
         </q-card>
       </div>
+
       <div class="col-4 large-screen-only">
         <q-item class="fixed">
           <q-item-section avatar>

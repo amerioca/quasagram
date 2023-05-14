@@ -1,16 +1,41 @@
 # Quasagram
 
-## Install the dependencies
+## Install app dependencies
 ```bash
 npm install
 ```
 
-### Start the app in development mode
+## Install backend dependencies
+```bash
+cd backend
+npm install
+```
+
+## Add your Heroku project name
+- On line 8 of `/backend/package.json` add your own Heroku project name 
+```
+{
+  ...
+  "scripts": {
+    ...
+    "deploy": "heroku builds:create -a [YOUR HEROKU PROJECT NAME]"
+  },
+  ...
+}
+```
+
+## Start the backend (from /backend folder)
+```bash
+npm start
+```
+
+## Start the app in development mode (from / folder)
 ```bash
 quasar dev
 ```
+View the posts endpoint at `http://localhost:3000/posts`
 
-### Build the app for production
+## Build the app for production
 ```bash
 quasar build
 ```
