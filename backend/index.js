@@ -71,6 +71,7 @@
 
     let fields = {}
     let fileData = {}
+    let imageUrl
 
     busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
       console.log('File [' + fieldname + ']: filename: ' + filename + ', encoding: ' + encoding + ', mimetype: ' + mimetype);
@@ -105,12 +106,14 @@
       )
 
       function createDocument(uploadedFile) {
+        imageUrl = `https://firebasestorage.googleapis.com/v0/b/${ bucket.name }/o/${ uploadedFile.name }?alt=media&token=${ uuid }`
+
         db.collection('posts').doc(fields.id).set({
           id: fields.id,
           caption: fields.caption,
           location: fields.location,
           date: parseInt(fields.date),
-          imageUrl: `https://firebasestorage.googleapis.com/v0/b/${ bucket.name }/o/${ uploadedFile.name }?alt=media&token=${ uuid }`
+          imageUrl: imageUrl
         }).then(() => {
           sendPushNotification()
           response.send('Post added: ' + fields.id)
@@ -136,7 +139,8 @@
             let pushContent = {
               title: 'New Quasagram Post!',
               body: 'New Post Added! Check it out!',
-              openUrl: '/#/'
+              openUrl: '/#/',
+              imageUrl: imageUrl
             }
             let pushContentStringified = JSON.stringify(pushContent)
             webpush.sendNotification(pushSubscription, pushContentStringified)
